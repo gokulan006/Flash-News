@@ -74,7 +74,7 @@ def extract_news():
     print("News articles fetched successfully.")
 
 # Schedule news extraction every 24 hours
-scheduler.add_job(extract_news, 'interval', hours=24)
+scheduler.add_job(extract_news, 'interval', minutes=20)
 
 # Fetch news at startup
 extract_news()
