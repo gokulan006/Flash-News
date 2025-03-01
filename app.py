@@ -9,7 +9,7 @@ app = Flask(__name__)
 # Initialize scheduler
 scheduler = BackgroundScheduler()
 scheduler.start()
-atexit.register(lambda: scheduler.shutdown())  # Corrected typo
+atexit.register(lambda: scheduler.shutdown())
 
 # Global variable to store latest news
 latest_news = []
@@ -17,14 +17,14 @@ latest_news = []
 def extract_news():
     base_url = "https://timesofindia.indiatimes.com/india"
     home_url = "https://timesofindia.indiatimes.com"
-    num_pages = 5
+    num_pages = 3  # Reduce pages for efficiency
     news_data = []
 
     for i in range(2, num_pages + 1):
         url = f"{base_url}/{i}"
         try:
             response = requests.get(url)
-            response.raise_for_status()  # Raise an error for bad status codes
+            response.raise_for_status()
         except requests.exceptions.RequestException as e:
             print(f"Failed to fetch page {i}. Error: {e}")
             continue
@@ -48,7 +48,7 @@ def extract_news():
 
                 try:
                     article_response = requests.get(link)
-                    article_response.raise_for_status()  # Raise an error for bad status codes
+                    article_response.raise_for_status()
                 except requests.exceptions.RequestException as e:
                     print(f"Failed to fetch article {link}. Error: {e}")
                     continue
@@ -56,20 +56,10 @@ def extract_news():
                 article_soup = BeautifulSoup(article_response.content, "html.parser")
 
                 content_div = article_soup.find("div", class_="_s30J clearfix")
-                if content_div:
-                    for br in content_div.find_all("br"):
-                        br.replace_with("\n")
-                    article_text = content_div.get_text().strip()
-                else:
-                    print(f"Content not found {link}")
-                    article_text = "Content not found"
+                article_text = content_div.get_text(strip=True) if content_div else "Content not found"
 
                 date_element = article_soup.find("div", class_="xf8Pm byline")
-                published_date = "Date not found"
-                if date_element:
-                    span_element = date_element.find("span")
-                    if span_element:
-                        published_date = span_element.text.strip()
+                published_date = date_element.find("span").text.strip() if date_element and date_element.find("span") else "Date not found"
 
                 news_data.append({
                     "link": link,
@@ -78,26 +68,24 @@ def extract_news():
                     "Published_date": published_date
                 })
 
-    # Filter out articles with missing content or date
-    news_articles = [item for item in news_data if item["Content"] != "Content not found" and item["Published_date"] != "Date not found"]
+    # Filter valid articles
     global latest_news
-    latest_news = news_articles
+    latest_news = [item for item in news_data if item["Content"] != "Content not found" and item["Published_date"] != "Date not found"]
     print("News articles fetched successfully.")
 
-# Schedule the extract_news function to run every 24 hours
+# Schedule news extraction every 24 hours
 scheduler.add_job(extract_news, 'interval', hours=24)
 
-# Fetch news immediately on startup
+# Fetch news at startup
 extract_news()
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # Corrected typo
+    return render_template('index.html')
 
 @app.route('/blog')
 def blog():
-    global latest_news
-    return render_template('blog.html', news_articles=latest_news)  # Corrected typo
+    return render_template('blog.html', news_articles=latest_news)
 
 if __name__ == "__main__":
     app.run(debug=True)
