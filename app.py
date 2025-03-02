@@ -3,39 +3,45 @@ import requests
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-
 from transformers import pipeline
 
+# Initialize Named Entity Recognition (NER) model
 ner = pipeline("ner", grouped_entities=True)
 
+# List of Indian States
+states = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 
+    'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Kerala', 'Karnataka', 'Ladakh', 'Madhya Pradesh', 
+    'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 
+    'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+]
 
-
-
-
-states=['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Kerala', 'Karnataka', 'Ladakh', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal']
+# Function to find state in text
 def find_partial_match(text, states=states):
     for state in states:
         if state in text:
             return state
     return None
- 
+
+# Classify headlines using NER
 def classify_headline(item):
-  headline=item['Content']
-  doc = ner(headline)
-  locations = [item['word'] for item in doc]
-  state=find_partial_match(headline)
-  if state:
-    item['state']=state
-  else:
-    item['state']=None
-  return  
+    headline = item['Content']
+    doc = ner(headline)
+    
+    locations = [entity['word'] for entity in doc]
+    state = find_partial_match(headline)
+    
+    item['state'] = state if state else "General News"
+    return
+
+# Function to extract news
 def extract_news():
     base_url = "https://timesofindia.indiatimes.com/india"
     home_url = "https://timesofindia.indiatimes.com"
-    num_pages = 9# Reduce pages for efficiency
+    num_pages = 5  # Reduce pages for efficiency
     news_data = []
 
-    for i in range(2, num_pages + 1):
+    for i in range(1, num_pages + 1):
         url = f"{base_url}/{i}"
         try:
             response = requests.get(url)
@@ -69,7 +75,7 @@ def extract_news():
                     continue
 
                 article_soup = BeautifulSoup(article_response.content, "html.parser")
-                
+
                 content_div = article_soup.find("div", class_="_s30J clearfix")
                 article_text = content_div.get_text(strip=True) if content_div else "Content not found"
 
@@ -80,37 +86,30 @@ def extract_news():
                     "link": link,
                     "Title": span.text,
                     "Content": article_text,
-                    
                     "Published_date": published_date
                 })
 
-    # Filter valid articles
+    # Store latest news globally
     global latest_news
     latest_news = [item for item in news_data if item["Content"] != "Content not found" and item["Published_date"] != "Date not found"]
-    for item in latest_news:
-      classify_headline(item)
-    
-    for item in latest_news:
-      if item['state']==None:
-        item['state']='General News'
 
+    for item in latest_news:
+        classify_headline(item)
 
+# Flask App
 app = Flask(__name__)
 
-# Initialize scheduler
+# Background Scheduler
 scheduler = BackgroundScheduler()
+scheduler.add_job(extract_news, 'interval', minutes=20)
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
 
-# Global variable to store latest news
+# Global News Variable
 latest_news = []
+extract_news()  # Fetch news at startup
 
-# Schedule news extraction every 24 hours
-scheduler.add_job(extract_news, 'interval', minutes=20)
-
-# Fetch news at startup
-extract_news()
-
+# Routes
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -120,4 +119,5 @@ def blog():
     return render_template('blog.html', news_articles=latest_news)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
+
