@@ -2,5 +2,6 @@ Flask==3.0.0
 requests==2.31.0
 beautifulsoup4==4.12.3
 apscheduler==3.10.4
-gunicorn==21.2.0
-transformers==4.38.1
+gunicorn==21.2.0 
+transformers
+tensorflow
