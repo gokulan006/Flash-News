@@ -35,7 +35,7 @@ def extract_news():
     num_pages = 5  # Reduce pages for efficiency
     news_data = []
 
-    for i in range(1, num_pages + 1):
+    for i in range(2, num_pages + 1):
         url = f"{base_url}/{i}"
         try:
             response = requests.get(url)
