@@ -6,7 +6,7 @@ import atexit
 from transformers import pipeline
 
 # Initialize Named Entity Recognition (NER) model
-ner = pipeline("ner", grouped_entities=True)
+ner = pipeline("ner", model="dbmdz/bert-large-cased-finetuned-conll03-english")
 
 # List of Indian States
 states = [
