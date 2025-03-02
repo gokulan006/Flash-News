@@ -4,4 +4,4 @@ beautifulsoup4==4.12.3
 apscheduler==3.10.4
 gunicorn==21.2.0 
 transformers
-tensorflow
+tensorflow-cpu==2.13.0
