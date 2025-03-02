@@ -3,7 +3,11 @@ import requests
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
- 
+
+from transformers import pipeline
+
+ner = pipeline("ner", grouped_entities=True)
+
 
 
 app = Flask(__name__)
@@ -16,12 +20,27 @@ atexit.register(lambda: scheduler.shutdown())
 # Global variable to store latest news
 latest_news = []
 
+states=['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Kerala', 'Karnataka', 'Ladakh', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal']
+def find_partial_match(text, states=states):
+    for state in states:
+        if state in text:
+            return state
+    return None
  
-
+def classify_headline(item):
+  headline=item['Content']
+  doc = ner(headline)
+  locations = [item['word'] for item in doc]
+  state=find_partial_match(headline)
+  if state:
+    item['state']=state
+  else:
+    item['state']=None
+  return  
 def extract_news():
     base_url = "https://timesofindia.indiatimes.com/india"
     home_url = "https://timesofindia.indiatimes.com"
-    num_pages = 3  # Reduce pages for efficiency
+    num_pages = 9# Reduce pages for efficiency
     news_data = []
 
     for i in range(2, num_pages + 1):
@@ -58,13 +77,13 @@ def extract_news():
                     continue
 
                 article_soup = BeautifulSoup(article_response.content, "html.parser")
-
+                
                 content_div = article_soup.find("div", class_="_s30J clearfix")
                 article_text = content_div.get_text(strip=True) if content_div else "Content not found"
 
                 date_element = article_soup.find("div", class_="xf8Pm byline")
                 published_date = date_element.find("span").text.strip() if date_element and date_element.find("span") else "Date not found"
-                 
+                
                 news_data.append({
                     "link": link,
                     "Title": span.text,
@@ -76,9 +95,14 @@ def extract_news():
     # Filter valid articles
     global latest_news
     latest_news = [item for item in news_data if item["Content"] != "Content not found" and item["Published_date"] != "Date not found"]
+    for item in latest_news:
+      classify_headline(item)
     
-    print("News articles fetched successfully.")
-
+    for item in latest_news:
+      if item['state']==None:
+        item['state']='General News'
+     
+    
 # Schedule news extraction every 24 hours
 scheduler.add_job(extract_news, 'interval', minutes=20)
 
