@@ -3,10 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-from transformers import pipeline
-
-# Initialize Named Entity Recognition (NER) model
-ner = pipeline("ner", model="dbmdz/bert-large-cased-finetuned-conll03-english")
+ 
 
 # List of Indian States
 states = [
@@ -26,9 +23,6 @@ def find_partial_match(text, states=states):
 # Classify headlines using NER
 def classify_headline(item):
     headline = item['Content']
-    doc = ner(headline)
-    
-    locations = [entity['word'] for entity in doc]
     state = find_partial_match(headline)
     
     item['state'] = state if state else "General News"
