@@ -10,15 +10,7 @@ ner = pipeline("ner", grouped_entities=True)
 
 
 
-app = Flask(__name__)
 
-# Initialize scheduler
-scheduler = BackgroundScheduler()
-scheduler.start()
-atexit.register(lambda: scheduler.shutdown())
-
-# Global variable to store latest news
-latest_news = []
 
 states=['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Kerala', 'Karnataka', 'Ladakh', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal']
 def find_partial_match(text, states=states):
@@ -101,8 +93,18 @@ def extract_news():
     for item in latest_news:
       if item['state']==None:
         item['state']='General News'
-     
-    
+
+
+app = Flask(__name__)
+
+# Initialize scheduler
+scheduler = BackgroundScheduler()
+scheduler.start()
+atexit.register(lambda: scheduler.shutdown())
+
+# Global variable to store latest news
+latest_news = []
+
 # Schedule news extraction every 24 hours
 scheduler.add_job(extract_news, 'interval', minutes=20)
 
