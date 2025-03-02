@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <h5 class="card-title">{{ article.Title }}</h5>
                     <p class="card-text">{{ article.Content | truncate(200, True, '...') }}</p>
-                    <p class="card-text">{{ article.summary | truncate(200, True, '...') }}</p>
+                    
                     <p class="card-text"><small class="text-muted">Published on: {{ article.Published_date }}</small></p>
                     <a href="{{ article.link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Read More</a>
                 </div>
