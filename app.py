@@ -3,8 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-from transformers import pipeline
-summarizer=pipeline("summarization",device="cuda")
+ 
 
 
 app = Flask(__name__)
@@ -17,13 +16,7 @@ atexit.register(lambda: scheduler.shutdown())
 # Global variable to store latest news
 latest_news = []
 
-def summarize_text(text, max_length=100):  # Limit summary length
-    try:
-        summary = summarizer(text, max_length=max_length, min_length=20, do_sample=False)  # adjust max_length if needed
-        return summary[0]['summary_text'] if summary else None # Extract text
-    except Exception as e:
-        print(f"Error summarizing text: {e}")
-        return None
+ 
 
 def extract_news():
     base_url = "https://timesofindia.indiatimes.com/india"
@@ -71,18 +64,18 @@ def extract_news():
 
                 date_element = article_soup.find("div", class_="xf8Pm byline")
                 published_date = date_element.find("span").text.strip() if date_element and date_element.find("span") else "Date not found"
-                summary=summary_text(article_text)
+                 
                 news_data.append({
                     "link": link,
                     "Title": span.text,
                     "Content": article_text,
-                    "summary":summary,
+                    
                     "Published_date": published_date
                 })
 
     # Filter valid articles
     global latest_news
-    latest_news = [item for item in news_data if item["Content"] != "Content not found" and item["Published_date"] != "Date not found" and 'summary' in item]
+    latest_news = [item for item in news_data if item["Content"] != "Content not found" and item["Published_date"] != "Date not found"]
     
     print("News articles fetched successfully.")
 
