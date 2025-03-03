@@ -1,5 +1,8 @@
 # Flash News App
 
+## Demo
+[App](https://mighty-brook-89788-170c96668c0b.herokuapp.com/)
+
 ## Overview
 This is a Flask-based web application that scrapes and displays the latest news articles from the *Times of India* website. The application categorizes news based on Indian states and updates the news articles periodically using a background scheduler.
 
