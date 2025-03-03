@@ -107,11 +107,43 @@
             background: #005bb5;
         }
 
-    </style>
+        /* Back to Top Button */
+        #topButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none; /* Initially hidden */
+        }
 
+        #topButton:hover {
+            background-color: #005bb5;
+        }
+    </style>
+    
     <script>
         function scrollToState(stateId) {
             document.getElementById(stateId).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Show/Hide Top Button
+        window.onscroll = function() {
+            let topButton = document.getElementById("topButton");
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                topButton.style.display = "block";
+            } else {
+                topButton.style.display = "none";
+            }
+        };
+
+        // Scroll to Top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </head>
@@ -144,5 +176,9 @@
         </div>
     {% endfor %}
 
+    <!-- Scroll to Top Button -->
+    <button id="topButton" onclick="scrollToTop()">↑ Top</button>
+
 </body>
 </html>
+
