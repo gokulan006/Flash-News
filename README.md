@@ -46,18 +46,7 @@ This is a Flask-based web application that scrapes and displays the latest news 
    http://127.0.0.1:5000/
    ```
 
-## Project Structure
-```
-├── app.py               # Main Flask application
-├── templates
-│   ├── index.html       # Home page
-│   ├── blog.html        # Blog page with news articles
-├── static
-│   ├── styles.css       # CSS file for styling
-├── requirements.txt     # List of dependencies
-├── README.md            # Project documentation
-```
-
+ 
 ## API Endpoints
 - **`/`** → Home Page
 - **`/blog`** → News Blog Page (Displays categorized news articles)
